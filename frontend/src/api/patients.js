@@ -1,0 +1,10 @@
+import client from './client';
+export const getPatients = () => client.get('/patients');
+export const getPatient = (id) => client.get(`/patients/${id}`);
+export const createPatient = (data) => client.post('/patients', data);
+export const updatePatient = (id, data) => client.put(`/patients/${id}`, data);
+export const deletePatient = (id) => client.delete(`/patients/${id}`);
+export const addPatientPhone = (id, data) => client.post(`/patients/${id}/phones`, data);
+export const deletePatientPhone = (id, phone) => client.delete(`/patients/${id}/phones/${phone}`);
+export const addPatientAllergy = (id, data) => client.post(`/patients/${id}/allergies`, data);
+export const deletePatientAllergy = (id, allergy) => client.delete(`/patients/${id}/allergies/${allergy}`);
