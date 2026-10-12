@@ -1,4 +1,5 @@
 import client from './client';
+
 export const getPatients = () => client.get('/patients');
 export const getPatient = (id) => client.get(`/patients/${id}`);
 export const createPatient = (data) => client.post('/patients', data);
@@ -8,3 +9,6 @@ export const addPatientPhone = (id, data) => client.post(`/patients/${id}/phones
 export const deletePatientPhone = (id, phone) => client.delete(`/patients/${id}/phones/${phone}`);
 export const addPatientAllergy = (id, data) => client.post(`/patients/${id}/allergies`, data);
 export const deletePatientAllergy = (id, allergy) => client.delete(`/patients/${id}/allergies/${allergy}`);
+
+export const getPatientReportUrl = (id) => `${client.defaults.baseURL}/patients/${id}/report.pdf`;
+export const downloadPatientReport = (id) => client.get(`/patients/${id}/report.pdf`, { responseType: 'blob' });
