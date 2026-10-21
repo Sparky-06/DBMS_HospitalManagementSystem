@@ -1,19 +1,18 @@
+
 const path = require('path');
-<<<<<<< HEAD
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
-=======
 const fs = require('fs');
 
+// Load environment variables from backend/.env or root .env
 const backendEnv = path.resolve(__dirname, '../.env');
 const rootEnv = path.resolve(__dirname, '../../.env');
+
 if (fs.existsSync(backendEnv)) {
   require('dotenv').config({ path: backendEnv });
 }
+
 if (fs.existsSync(rootEnv)) {
   require('dotenv').config({ path: rootEnv });
 }
-require('dotenv').config();
->>>>>>> ab06b9a (DA2 Final Commit)
 
 const app = require('./app');
 const { testConnection, pool } = require('./config/db');
@@ -26,11 +25,16 @@ async function startServer() {
   console.log('====================================================');
 
   const dbOk = await testConnection();
+
   if (dbOk) {
-    console.log(`[DB] Successfully connected to MySQL (${process.env.DB_NAME || 'hospital_pms'})`);
+    console.log(
+      `[DB] Successfully connected to MySQL (${process.env.DB_NAME || 'hospital_pms'})`
+    );
   } else {
-    console.warn(`[DB WARNING] Could not connect to MySQL database.`);
-    console.warn(`[DB WARNING] Ensure MySQL is running and verify backend/.env settings.`);
+    console.warn('[DB WARNING] Could not connect to MySQL database.');
+    console.warn(
+      '[DB WARNING] Ensure MySQL is running and verify backend/.env settings.'
+    );
   }
 
   const server = app.listen(PORT, () => {
@@ -43,6 +47,7 @@ async function startServer() {
   // Graceful shutdown
   const shutdown = async (signal) => {
     console.log(`\nReceived ${signal}. Closing HTTP server and DB connections...`);
+
     server.close(async () => {
       try {
         await pool.end();
@@ -50,6 +55,7 @@ async function startServer() {
       } catch (err) {
         console.error('Error closing database pool:', err);
       }
+
       process.exit(0);
     });
   };
