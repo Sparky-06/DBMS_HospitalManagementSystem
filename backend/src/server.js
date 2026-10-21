@@ -1,5 +1,19 @@
 const path = require('path');
+<<<<<<< HEAD
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+=======
+const fs = require('fs');
+
+const backendEnv = path.resolve(__dirname, '../.env');
+const rootEnv = path.resolve(__dirname, '../../.env');
+if (fs.existsSync(backendEnv)) {
+  require('dotenv').config({ path: backendEnv });
+}
+if (fs.existsSync(rootEnv)) {
+  require('dotenv').config({ path: rootEnv });
+}
+require('dotenv').config();
+>>>>>>> ab06b9a (DA2 Final Commit)
 
 const app = require('./app');
 const { testConnection, pool } = require('./config/db');

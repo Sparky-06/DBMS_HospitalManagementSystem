@@ -1,5 +1,13 @@
 node_modules/
 .env
+<<<<<<< HEAD
+=======
+backend/.env
+*.env
+.env.*
+!.env.example
+!backend/.env.example
+>>>>>>> ab06b9a (DA2 Final Commit)
 logs/
 *.log
 coverage/
