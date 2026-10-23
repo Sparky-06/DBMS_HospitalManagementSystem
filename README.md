@@ -4,13 +4,19 @@ A full-stack **Hospital Management System** developed as a Database Management S
 
 The project demonstrates the practical application of **database design, relational mapping, SQL, normalization, constraints, CRUD operations, and a web-based application layer**.
 
+The system supports **dual backend implementations**:
+1. **Local MySQL Backend** (`backend/`): Connects to a standard local MySQL 8.x database instance.
+2. **TiDB Cloud Backend** (`tidb_backend/`): Connects to a scalable, distributed cloud database on **TiDB Cloud** (Serverless/Dedicated) with TLS/SSL encryption and cloud keep-alive optimizations.
+
+Both backends adhere to the exact same REST API contract, allowing the **React frontend** to work seamlessly with either backend with **zero code or configuration changes**.
+
 ---
 
 ## 📌 Project Overview
 
 Managing hospital information manually can lead to data redundancy, inconsistency, and difficulty in retrieving records.
 
-This project provides a centralized system where hospital-related information can be stored and managed using a relational database. The frontend provides the user interface, while the backend exposes REST APIs and communicates with the MySQL database.
+This project provides a centralized system where hospital-related information can be stored and managed using a relational database. The frontend provides the user interface, while the backend exposes REST APIs and communicates with either the local MySQL database or the cloud-hosted TiDB cluster.
 
 ### Main Objectives
 
@@ -20,31 +26,36 @@ This project provides a centralized system where hospital-related information ca
 * Perform CRUD operations through a web application.
 * Provide REST APIs for communication between frontend and database.
 * Demonstrate database concepts such as normalization, keys, constraints, and relationships.
+* Showcase seamless hybrid deployment (local MySQL vs. distributed cloud TiDB).
 
 ---
 
 ## 🏗️ System Architecture
 
 ```text
-┌──────────────────────┐
-│      Frontend        │
-│      React + Vite    │
-└──────────┬───────────┘
-           │
-           │ HTTP / REST API
-           ▼
-┌──────────────────────┐
-│       Backend        │
-│    Node.js + Express │
-└──────────┬───────────┘
-           │
-           │ SQL Queries
-           ▼
-┌──────────────────────┐
-│     MySQL Database   │
-│                      │
-│  Hospital Database   │
-└──────────────────────┘
+                     ┌──────────────────────┐
+                     │      Frontend        │
+                     │    React 18 + Vite   │
+                     │(http://localhost:5173)│
+                     └──────────┬───────────┘
+                                │
+                                │ HTTP / REST API (port 5000)
+                                ▼
+            ┌────────────────────────────────────────┐
+            │   Dual Backend Options (Port 5000)     │
+            ├────────────────────┬───────────────────┤
+            │  Option A (Local)  │  Option B (Cloud) │
+            │      backend/      │   tidb_backend/   │
+            │  Node.js + Express │ Node.js + Express │
+            └─────────┬──────────┴─────────┬─────────┘
+                      │                    │
+                      │ Port 3306          │ Port 4000 (TLS/SSL)
+                      ▼                    ▼
+            ┌──────────────────┐ ┌───────────────────┐
+            │   Local MySQL    │ │    TiDB Cloud     │
+            │  Database Server │ │ Serverless Cluster│
+            │  (hospital_pms)  │ │  (hospital_pms)   │
+            └──────────────────┘ └───────────────────┘
 ```
 
 ---
@@ -52,83 +63,83 @@ This project provides a centralized system where hospital-related information ca
 ## 🛠️ Technology Stack
 
 ### Frontend
+* **React 18**
+* **Vite**
+* **TailwindCSS / Lucide Icons**
+* **Axios** (API Client)
 
-* React
-* Vite
-* JavaScript
-* HTML
-* CSS
+### Backend Implementations
+* **Node.js & Express.js**
+* **mysql2/promise** (MySQL & TiDB compatible driver)
+* **Express Validator** (Strict request contract validation)
+* **PDFKit** (Dynamic PDF discharge summary generation)
+* **Jest & Supertest** (End-to-end automated API suite)
 
-### Backend
-
-* Node.js
-* Express.js
-* REST APIs
-* Jest / Supertest for testing
-
-### Database
-
-* MySQL
-* SQL
-
-### Development Tools
-
-* Git
-* GitHub
-* npm
+### Databases Supported
+* **MySQL 8.x** (Local relational database)
+* **TiDB Cloud** (Distributed, MySQL 8.0 wire-compatible Cloud Native HTAP Database)
 
 ---
 
 ## 📁 Project Structure
 
 ```text
-DA2_project/
+DBMS_HospitalManagementSystem/
 │
-├── backend/               # Local MySQL Backend
+├── backend/                       # Local MySQL Backend Implementation
 │   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── app.js
-│   │   └── server.js
+│   │   ├── config/db.js           # Local MySQL connection pool
+│   │   ├── controllers/           # API controllers
+│   │   ├── middleware/            # Error handler & input validation
+│   │   ├── routes/                # Entity REST routes
+│   │   ├── services/              # Business logic & transactions
+│   │   ├── app.js                 # Express application configuration
+│   │   └── server.js              # Server entry point
 │   ├── tests/
-│   │   └── api.test.js
-│   ├── package.json
-│   └── package-lock.json
-│
-├── tidb_backend/          # TiDB Cloud Backend (Drop-in replacement)
-│   ├── src/
-│   │   ├── config/        # Configured for TiDB Cloud & SSL/TLS
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   ├── scripts/       # initDb.js and seedDb.js automation
-│   │   ├── services/
-│   │   ├── app.js
-│   │   └── server.js
-│   ├── tests/
-│   │   └── api.test.js
-│   ├── .env               # TiDB Cloud connection settings
+│   │   └── api.test.js            # Automated test suite
+│   ├── .env                       # Local environment variables
 │   ├── .env.example
 │   ├── package.json
 │   └── package-lock.json
 │
-├── frontend/              # React + Vite Frontend (Compatible with both backends)
+├── tidb_backend/                  # TiDB Cloud Backend Implementation
 │   ├── src/
+│   │   ├── config/db.js           # TiDB Cloud pool with TLS/SSL & Keep-Alive
+│   │   ├── controllers/           # Identical API controllers
+│   │   ├── middleware/            # Error handling with TiDB error code support
+│   │   ├── routes/                # Identical entity REST routes
+│   │   ├── scripts/
+│   │   │   ├── testConnection.js  # Connection diagnostics (npm run db:test)
+│   │   │   ├── initDb.js          # Auto-creates schema on cloud (npm run db:init)
+│   │   │   └── seedDb.js          # Auto-seeds cloud database (npm run db:seed)
+│   │   ├── services/
+│   │   ├── app.js
+│   │   └── server.js              # Server entry point
+│   ├── tests/
+│   │   └── api.test.js            # Automated test suite
+│   ├── .env                       # TiDB Cloud credentials & SSL settings
+│   ├── .env.example
+│   ├── README.md                  # TiDB backend detailed documentation
+│   ├── package.json
+│   └── package-lock.json
+│
+├── frontend/                      # React + Vite Frontend (Works with both backends)
+│   ├── src/
+│   │   ├── api/                   # API client calling http://localhost:5000/api
+│   │   ├── components/            # UI components (Navbar, Sidebar, Tables, Modals)
+│   │   ├── pages/                 # Patients, Doctors, Nurses, Rooms, Bills, etc.
+│   │   ├── context/               # Global state & demo data fallback
+│   │   └── main.jsx
 │   ├── public/
 │   ├── package.json
-│   ├── package-lock.json
 │   ├── index.html
 │   └── vite.config.js
 │
 ├── sql/
-│   ├── schema.sql
-│   └── seed.sql
+│   ├── schema.sql                 # Complete DDL relational schema (13 tables)
+│   └── seed.sql                   # Sample dataset for all entities
 │
-├── Reference/
-│
+├── Reference/                     # Project roadmap, SRS & contract specifications
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -136,149 +147,97 @@ DA2_project/
 
 ---
 
-## 🗄️ Database
+## ⚖️ Backend Comparison: Local MySQL vs. TiDB Cloud
 
-The database is designed as a relational database using MySQL.
+Both backend implementations are fully drop-in interchangeable:
 
-The database contains entities representing different aspects of hospital operations, including:
+| Feature | Local Backend (`backend/`) | Cloud Backend (`tidb_backend/`) |
+|---|---|---|
+| **Directory** | `backend/` | `tidb_backend/` |
+| **Target Database** | Local MySQL 8.x | TiDB Cloud Serverless / Dedicated |
+| **Default Port** | `5000` | `5000` |
+| **DB Port** | `3306` | `4000` |
+| **SSL / TLS** | `DB_SSL=false` (Disabled) | `DB_SSL=true` (TLS v1.2+ mandatory) |
+| **TCP Keep-Alive** | Default | `enableKeepAlive: true`, `10000ms` delay |
+| **Cloud Automation** | Manual SQL execution | Built-in scripts (`db:test`, `db:init`, `db:seed`) |
+| **Frontend Impact** | **None** (`localhost:5000`) | **None** (`localhost:5000`) |
 
-* Patients
-* Doctors
-* Nurses
-* Employees
-* Departments
-* Rooms
-* Consultations
-* Appointments
-* Bills
-* Assignments
-* Test Reports
+---
 
-The database uses appropriate:
+## 🔌 Connection Details & Environment Configuration
 
-* Primary Keys
-* Foreign Keys
-* Candidate/Alternate Keys where applicable
-* `NOT NULL` constraints
-* `UNIQUE` constraints
-* Referential integrity
-* Relationship constraints
+### 1. Local MySQL Backend (`backend/.env`)
+Create or edit `backend/.env`:
 
-The database schema is available in:
+```env
+# Server Configuration
+PORT=5000
+NODE_ENV=development
 
-```text
-sql/schema.sql
-```
+# MySQL Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_local_mysql_password
+DB_NAME=hospital_pms
 
-Sample/initial data is provided in:
+# SSL Configuration
+DB_SSL=false
+DB_SSL_REJECT_UNAUTHORIZED=true
 
-```text
-sql/seed.sql
+# Frontend Client URL for CORS
+CLIENT_URL=http://localhost:5173
 ```
 
 ---
 
-## 🔄 Backend
+### 2. TiDB Cloud Backend (`tidb_backend/.env`)
+Create or edit `tidb_backend/.env`:
 
-The backend is implemented using **Node.js and Express.js**.
+```env
+# Server Configuration
+PORT=5000
+NODE_ENV=development
 
-The backend follows a layered structure consisting of:
+# TiDB Cloud Database Configuration
+# Obtain these from https://tidbcloud.com -> Cluster -> Connect
+DB_HOST=gateway01.ap-southeast-1.prod.aws.tidbcloud.com
+DB_PORT=4000
+DB_USER=your_prefix.root
+DB_PASSWORD=your_tidb_password
+DB_NAME=hospital_pms
 
-```text
-Routes
-   ↓
-Controllers
-   ↓
-Services
-   ↓
-Database
+# Mandatory SSL for TiDB Cloud
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=true
+
+# Frontend Client URL for CORS
+CLIENT_URL=http://localhost:5173
 ```
 
-### Controllers
-
-Controllers handle incoming API requests and return appropriate responses.
-
-Examples include controllers for:
-
-* Patients
-* Doctors
-* Nurses
-* Employees
-* Bills
-* Assignments
-* Consultations
-* Dashboard
-* Rooms
-* Test Reports
-
-### Routes
-
-The API routes provide endpoints for interacting with the different entities in the system.
-
-Example structure:
-
-```text
-/api/patients
-/api/doctors
-/api/nurses
-/api/rooms
-/api/bills
-/api/consultations
-/api/appointments
-```
+> [!IMPORTANT]
+> **Understanding the TiDB Cloud Username Prefix:**  
+> On **TiDB Cloud Serverless**, your username is **NOT** just `root`. It includes a cluster-specific prefix, for example `4N11eXuAaoDrgrt.root`. This prefix is mandatory for the TiDB Cloud gateway to route queries to your tenant cluster.
+> 
+> **Alternative Connection URI:**  
+> You can also set a single `DATABASE_URL` line if copied directly from the TiDB Cloud console:
+> ```env
+> DATABASE_URL=mysql://<prefix>.root:<password>@gateway01.<region>.prod.aws.tidbcloud.com:4000/hospital_pms?ssl={"rejectUnauthorized":true}
+> ```
 
 ---
 
-## 🖥️ Frontend
-
-The frontend is built using **React with Vite**.
-
-It provides the user interface for interacting with the hospital management system and communicates with the backend through REST APIs.
-
-The frontend is maintained separately inside:
-
-```text
-frontend/
-```
-
----
-
-## 🧪 Testing
-
-The backend contains automated API tests using:
-
-* Jest
-* Supertest
-
-Tests are located in:
-
-```text
-backend/tests/
-```
-
-Run backend tests using:
-
-```bash
-npm test
-```
-
----
-
-## ⚙️ Installation & Setup
+## 🚀 Step-by-Step Installation & Setup
 
 ### Prerequisites
-
-Make sure the following are installed:
-
-* Node.js
-* npm
-* MySQL
-* Git
+* **Node.js** (v18.x or later)
+* **npm** (v9.x or later)
+* **Git**
+* Either **MySQL Server 8.x** (local) OR a free account on **[TiDB Cloud](https://tidbcloud.com)**.
 
 ---
 
-### 1. Clone the Repository
-
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/Sparky-06/DBMS_HospitalManagementSystem.git
 cd DBMS_HospitalManagementSystem
@@ -286,63 +245,49 @@ cd DBMS_HospitalManagementSystem
 
 ---
 
-### 2. Set Up the Database
+### Step 2: Choose and Run Your Preferred Backend
 
-Create a MySQL database and execute the schema:
+#### Option A: Running with Local MySQL
+1. Open your MySQL client (CLI, Workbench, or DBeaver) and run the SQL scripts:
+   ```bash
+   mysql -u root -p < sql/schema.sql
+   mysql -u root -p < sql/seed.sql
+   ```
+2. Configure `backend/.env` with your MySQL root password.
+3. Start the backend:
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
 
-```text
-sql/schema.sql
-```
-
-Then populate the database using:
-
-```text
-sql/seed.sql
-```
-
----
-
-### 3. Configure Environment Variables
-
-Create a `.env` file using the provided example:
-
-```bash
-cp .env.example .env
-```
-
-Update the database configuration according to your local MySQL setup.
-
----
-
-### 4. Start the Backend (Choose Either Local MySQL or TiDB Cloud)
-
-You can run either backend implementation. Both listen on port `5000` and use identical REST endpoints, so **the frontend works seamlessly with both with zero changes!**
-
-#### Option A: Local MySQL Backend
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-#### Option B: TiDB Cloud Backend
-1. Configure credentials in `tidb_backend/.env` (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT=4000, DB_SSL=true).
-2. (Optional) Run schema initialization and seed on TiDB Cloud:
+#### Option B: Running with TiDB Cloud
+1. Sign up at [TiDB Cloud](https://tidbcloud.com/) and create a free **TiDB Serverless** cluster.
+2. In TiDB Cloud, click **Connect** → choose **Node.js** or **SQL Client** → copy Host, User (with prefix), and Password.
+3. Configure `tidb_backend/.env` with your credentials.
+4. Verify connection and run automated cloud database migrations:
    ```bash
    cd tidb_backend
+   npm install
+
+   # Test connection to TiDB Cloud
+   npm run db:test
+
+   # Create all 13 schema tables in TiDB Cloud
    npm run db:init
+
+   # Seed sample hospital records in TiDB Cloud
    npm run db:seed
    ```
-3. Start the server:
+5. Start the backend:
    ```bash
    npm run dev
    ```
 
 ---
 
-### 5. Start the Frontend
-
-Open another terminal:
+### Step 3: Start the Frontend (Zero Changes Needed)
+Open a new terminal window:
 
 ```bash
 cd frontend
@@ -350,143 +295,104 @@ npm install
 npm run dev
 ```
 
-The Vite development server will provide the local URL in the terminal.
+Open **`http://localhost:5173`** in your browser.  
+The frontend connects to `http://localhost:5000/api` and works identically with whichever backend is running!
 
 ---
 
-## 🔐 Data Integrity & Database Design
+## 🧪 Automated Testing
 
-The project focuses on maintaining data integrity through relational database principles.
+Both backend folders have independent, zero-dependency Jest test suites verifying input validation, business logic, foreign key constraints, and contract envelopes:
 
-The database design considers:
+```bash
+# To test the Local MySQL Backend:
+cd backend
+npm test
 
-### Entity Integrity
-
-Each major entity has a primary key that uniquely identifies its records.
-
-### Referential Integrity
-
-Foreign keys are used to maintain valid relationships between related tables.
-
-### Domain Integrity
-
-Appropriate data types and constraints are used to ensure that attributes contain valid values.
-
-### Normalization
-
-The database design was analyzed through:
-
-```text
-1NF
- ↓
-2NF
- ↓
-3NF
- ↓
-BCNF
+# To test the TiDB Cloud Backend:
+cd tidb_backend
+npm test
 ```
 
-The purpose of normalization is to reduce:
-
-* Data redundancy
-* Update anomalies
-* Insert anomalies
-* Delete anomalies
-
-while maintaining meaningful relationships between entities.
+All 12 test suites execute across health endpoints, employee salaries, patient dates of birth, room capacities, and specialized disjoint ISA constraints.
 
 ---
 
-## 🔗 Database Relationships
+## 🗄️ Database Design & Schema Entities
 
-The system models relationships between major hospital entities such as:
+The relational database models the complete hospital operational workflow across 13 normalized tables:
 
 ```text
-Patient ─────── Appointment ─────── Doctor
-   │                                   │
-   │                                   │
-   └────── Consultation ───────────────┘
-
-Patient ───────── Bill
-
-Patient ───────── Test Report
-
-Doctor ────────── Department
-
-Patient ───────── Room / Assignment
+┌──────────────┐       1:N       ┌───────────────┐
+│   employee   │────────────────<│employee_phone │
+└──────┬───────┘                 └───────────────┘
+       │ (Disjoint ISA)
+       ├─────────────────────────────────┐
+       ▼                                 ▼
+┌──────────────┐                 ┌───────────────┐
+│    doctor    │                 │     nurse     │
+└──────┬───────┘                 └───────┬───────┘
+       │                                 │
+       │ M:N (consults)                  │ M:N (governs)
+       ▼                                 ▼
+┌──────────────┐                 ┌───────────────┐
+│   patient    │                 │     room      │
+└──────┬───────┘                 └───────┬───────┘
+       │                                 │
+       ├────────────── 1:N ──────────────┘ (assigned)
+       │
+       ├────────────── 1:N ──────────────> patient_phone
+       ├────────────── 1:N ──────────────> patient_allergy
+       ├────────────── 1:N ──────────────> bills
+       └────────────── 1:N ──────────────> test_report
 ```
 
-The exact relationships and constraints are defined in the database schema.
+### Table Summary
+1. **`employee`**: Base staff entity (`Emp_ID`, names, address, DOB, salary).
+2. **`employee_phone`**: Multivalued phone numbers for employees.
+3. **`doctor`**: Specialization of employee (`Department`, `Qualification`).
+4. **`nurse`**: Specialization of employee.
+5. **`patient`**: Patient records with derived age computed dynamically on retrieval.
+6. **`patient_phone`**: Multivalued contact numbers for patients.
+7. **`patient_allergy`**: Multivalued allergy tracking (e.g. Penicillin, Peanuts).
+8. **`room`**: Hospital wards and rooms with capacity and availability constraints.
+9. **`consults`**: Many-to-many relationship linking doctors and patients with appointment date and time.
+10. **`assigned`**: Patient-to-room inpatient admissions.
+11. **`governs`**: Nurse room supervision with shift tracking (`Morning`, `Evening`, `Night`).
+12. **`bills`**: Weak billing entity linked to patient with payment statuses (`Pending`, `Paid`, `Cancelled`).
+13. **`test_report`**: Laboratory and clinical diagnostics linked to patient.
 
 ---
 
-## 📊 DBMS Concepts Demonstrated
+## 🔐 Data Integrity & Normalization
 
-This project demonstrates practical implementation of several DBMS concepts:
-
-* Entity-Relationship modeling
-* EER diagram
-* Relational schema
-* Primary keys
-* Foreign keys
-* Candidate keys
-* Functional dependencies
-* Normalization
-* 1NF
-* 2NF
-* 3NF
-* BCNF
-* Referential integrity
-* Domain constraints
-* SQL DDL
-* SQL DML
-* CRUD operations
-* Joins
-* Relational mapping
-* Database-driven application development
-* API-based database interaction
+* **Entity Integrity**: Primary keys enforced on all tables (e.g. `Emp_ID`, `P_ID`, `R_ID`).
+* **Referential Integrity**: Cascading and restrictive foreign key constraints across all relationships.
+* **Domain & Check Constraints**: `Salary >= 0`, `Capacity > 0`, `Amount >= 0`, and ENUM validations.
+* **Derived Attribute Integrity**: Patient and employee age is dynamically calculated using `TIMESTAMPDIFF(YEAR, DOB, CURDATE())` and never redundantly stored.
+* **Normalization**: Decomposed to **BCNF (Boyce-Codd Normal Form)** to eliminate update, insertion, and deletion anomalies.
 
 ---
 
-## 🚀 Key Features
+## 🛠️ Common Troubleshooting
 
-* Patient management
-* Doctor management
-* Nurse and employee management
-* Appointment management
-* Consultation management
-* Room management
-* Assignment management
-* Billing management
-* Test report management
-* Hospital dashboard
-* REST API backend
-* MySQL database integration
-* Relational data management
-* Automated backend API testing
+### 1. `Access denied ... See user-name-prefix` (TiDB Cloud)
+* **Cause**: On TiDB Cloud Serverless, your username must include the cluster prefix (e.g. `4N11eXuAaoDrgrt.root`).
+* **Fix**: Check `tidb_backend/.env` and ensure `DB_USER` contains your full username prefix from the TiDB Cloud console.
+
+### 2. Frontend shows `Network Error`
+* **Cause**: The backend server is not running on port 5000.
+* **Fix**: Ensure `npm run dev` is active in either `backend/` or `tidb_backend/`.
+
+### 3. Frontend shows `No matching records found`
+* **Cause**: The database tables exist, but no seed data has been loaded.
+* **Fix**: Run `npm run db:seed` in `tidb_backend/` (or run `sql/seed.sql` on your local MySQL).
 
 ---
 
-## 👥 Project
+## 👥 Course & Project Information
 
-**Project:** Hospital Management System
-
-**Course:** Database Management Systems (DBMS)
-
-**Repository:**
-Sparky-06/DBMS_HospitalManagementSystem
-
-The project was developed as an academic DBMS application to demonstrate how database concepts can be integrated into a functional full-stack system.
-
----
-
-## 📚 References
-
-The `Reference/` directory contains supporting material and references used during the development of the project.
-
----
-
-## 📄 License
-
-This project was developed for **academic and educational purposes** as part of a Database Management Systems course.
-
+* **Project Title:** CareFlow Hospital Patient Management System (HPMS)
+* **Course:** Database Management Systems (DBMS)
+* **Repository:** [Sparky-06/DBMS_HospitalManagementSystem](https://github.com/Sparky-06/DBMS_HospitalManagementSystem)
+* **License:** Developed for academic and educational purposes.
