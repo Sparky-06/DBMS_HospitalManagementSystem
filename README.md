@@ -84,7 +84,7 @@ This project provides a centralized system where hospital-related information ca
 ```text
 DA2_project/
 │
-├── backend/
+├── backend/               # Local MySQL Backend
 │   ├── src/
 │   │   ├── config/
 │   │   ├── controllers/
@@ -93,14 +93,29 @@ DA2_project/
 │   │   ├── services/
 │   │   ├── app.js
 │   │   └── server.js
-│   │
 │   ├── tests/
 │   │   └── api.test.js
-│   │
 │   ├── package.json
 │   └── package-lock.json
 │
-├── frontend/
+├── tidb_backend/          # TiDB Cloud Backend (Drop-in replacement)
+│   ├── src/
+│   │   ├── config/        # Configured for TiDB Cloud & SSL/TLS
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── scripts/       # initDb.js and seedDb.js automation
+│   │   ├── services/
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── tests/
+│   │   └── api.test.js
+│   ├── .env               # TiDB Cloud connection settings
+│   ├── .env.example
+│   ├── package.json
+│   └── package-lock.json
+│
+├── frontend/              # React + Vite Frontend (Compatible with both backends)
 │   ├── src/
 │   ├── public/
 │   ├── package.json
@@ -299,19 +314,29 @@ Update the database configuration according to your local MySQL setup.
 
 ---
 
-### 4. Start the Backend
+### 4. Start the Backend (Choose Either Local MySQL or TiDB Cloud)
 
+You can run either backend implementation. Both listen on port `5000` and use identical REST endpoints, so **the frontend works seamlessly with both with zero changes!**
+
+#### Option A: Local MySQL Backend
 ```bash
 cd backend
 npm install
-npm start
-```
-
-For development:
-
-```bash
 npm run dev
 ```
+
+#### Option B: TiDB Cloud Backend
+1. Configure credentials in `tidb_backend/.env` (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT=4000, DB_SSL=true).
+2. (Optional) Run schema initialization and seed on TiDB Cloud:
+   ```bash
+   cd tidb_backend
+   npm run db:init
+   npm run db:seed
+   ```
+3. Start the server:
+   ```bash
+   npm run dev
+   ```
 
 ---
 
